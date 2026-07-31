@@ -80,29 +80,25 @@ def parse_simple_queue(text: str) -> dict:
     minutes = re.search(r"(\d+)\s*min", text, re.I)
     if patients and minutes:
         return {"status": "ok", "waiting": int(patients.group(1)), "doctor_min": int(minutes.group(1))}
-    return {"status": "error", "reason": "pattern not found"}
+    return {"status": "error", "reason": "pattern not found", "raw_excerpt": text[:400]}
 
 
 def parse_skh(text: str) -> dict:
     """
-    Best-effort parser for the SKH Plumber Tile. The tile's exact field
-    labels weren't verifiable ahead of time (Plumber is a JS SPA and wasn't
-    reachable for inspection while writing this script), so this looks for
-    the same generic "<n> patient" / "<n> min" or "<n> hour" shapes used
-    elsewhere. If SKH's tile uses different wording, tweak the regexes
-    below — run with --debug to print the full scraped text first.
+    Parser for the SKH Plumber Tile, a data-grid widget. Its row renders as
+    plain numbers with no unit words attached — "<patients> <consult_min>
+    <bed_hr>" — immediately followed by the grid's own "<n> row(s)" footer
+    text, e.g. "...pm 36 122 18 1 row". That footer is what anchors the
+    match: the three numbers right before it are the data.
     """
-    patients = re.search(r"(\d+)\s*patients?\b", text, re.I)
-    minutes = re.search(r"(\d+)\s*min", text, re.I)
-    hours = re.search(r"(\d+)\s*(?:hr|hour)", text, re.I)
-
-    if patients and (minutes or hours):
-        result = {"status": "ok", "waiting": int(patients.group(1))}
-        if minutes:
-            result["doctor_min"] = int(minutes.group(1))
-        elif hours:
-            result["doctor_min"] = int(hours.group(1)) * 60
-        return result
+    m = re.search(r"(\d+)\s+(\d+)\s+(\d+)\s+\d+\s*rows?\b", text, re.I)
+    if m:
+        return {
+            "status": "ok",
+            "waiting": int(m.group(1)),
+            "doctor_min": int(m.group(2)),
+            "bed_hr": int(m.group(3)),
+        }
     return {"status": "error", "reason": "pattern not found — inspect with --debug", "raw_excerpt": text[:400]}
 
 

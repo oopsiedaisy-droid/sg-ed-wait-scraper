@@ -433,7 +433,7 @@
         </div>
         <div class="stat"><div class="val" id="skh-waiting">—</div><div class="lbl">Waiting</div></div>
         <div class="stat primary"><div class="val" id="skh-doctor">—</div><div class="lbl">To see doctor</div></div>
-        <div class="stat"><div class="val">—</div><div class="lbl">Bed wait n/a</div></div>
+        <div class="stat"><div class="val" id="skh-bed">—</div><div class="lbl">Bed wait</div></div>
       </div>
 
       <details class="tracker-toggle">
@@ -562,6 +562,7 @@
     if(s.skh && s.skh.status === 'ok'){
       el('skh-waiting').textContent = s.skh.waiting;
       el('skh-doctor').textContent = s.skh.doctor_min + ' min';
+      if(s.skh.bed_hr != null) el('skh-bed').textContent = s.skh.bed_hr + ' hr';
       setBadge('badge-skh', 'ok');
     } else {
       setBadge('badge-skh', s.skh ? s.skh.status : 'cached');
