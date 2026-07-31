@@ -2,10 +2,10 @@ name: Scrape ED wait times
 
 on:
   schedule:
-    # Every 30 minutes. GitHub does not guarantee exact timing — during
+    # Every 15 minutes. GitHub does not guarantee exact timing — during
     # busy periods on the free tier, runs can be delayed by several
     # minutes. That's a platform limit, not a bug in this workflow.
-    - cron: "*/30 * * * *"
+    - cron: "*/15 * * * *"
   workflow_dispatch: {}   # lets you trigger a run manually from the Actions tab
 
 permissions:

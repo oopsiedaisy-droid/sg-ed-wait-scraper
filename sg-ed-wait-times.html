@@ -308,7 +308,7 @@
 <main>
   <div class="notice" id="configNotice">
     <strong>Data source</strong>
-    <span id="configNoticeText">This dashboard reads from a small server-side scraper's output instead of fetching hospital pages directly from your browser — that's what makes the numbers reliable rather than best-effort. It ships pointed at a placeholder. Follow the 5-minute setup in <code>scraper/README.md</code>, then edit <code>DATA_URL</code> near the bottom of this file to point at your own <code>data/wait-times.json</code>. Until then this page shows the last manually-captured snapshot (28 Jul 2026), refreshed on the same 30-minute cycle but not actually live.</span>
+    <span id="configNoticeText">This dashboard reads from a small server-side scraper's output instead of fetching hospital pages directly from your browser — that's what makes the numbers reliable rather than best-effort. It ships pointed at a placeholder. Follow the 5-minute setup in <code>scraper/README.md</code>, then edit <code>DATA_URL</code> near the bottom of this file to point at your own <code>data/wait-times.json</code>. Until then this page shows the last manually-captured snapshot (28 Jul 2026), refreshed on the same 15-minute cycle but not actually live.</span>
   </div>
 
   <section class="cluster">
@@ -483,7 +483,7 @@
 
 <script>
 (function(){
-  const REFRESH_MS = 30 * 60 * 1000; // 30 minutes
+  const REFRESH_MS = 15 * 60 * 1000; // 15 minutes
 
   // ---------------------------------------------------------------
   // Point this at your own scraper's output once it's set up.
@@ -575,7 +575,7 @@
     if(fromLiveSource){
       notice.classList.add('notice-ok');
       notice.querySelector('strong').textContent = 'Data source: live';
-      noticeText.innerHTML = 'Numbers on this page come from your server-side scraper\'s <code>data/wait-times.json</code>, refreshed every 30 minutes by GitHub Actions and re-polled by this page on the same cycle. Cross-origin browser restrictions never come into play because the scraping happens server-side.';
+      noticeText.innerHTML = 'Numbers on this page come from your server-side scraper\'s <code>data/wait-times.json</code>, refreshed every 15 minutes by GitHub Actions and re-polled by this page on the same cycle. Cross-origin browser restrictions never come into play because the scraping happens server-side.';
     } else {
       notice.classList.remove('notice-ok');
       notice.querySelector('strong').textContent = 'Data source: not yet configured';

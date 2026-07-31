@@ -26,7 +26,7 @@ this server-side.
 5. Open `sg-ed-wait-times.html` and paste that URL into the `DATA_URL`
    constant near the top of the `<script>` block at the bottom of the
    file. Reopen the dashboard — it will now pull live numbers from your
-   repo, refreshed automatically every 30 minutes by the workflow, and
+   repo, refreshed automatically every 15 minutes by the workflow, and
    re-polled by the page itself on the same cadence.
 
 `raw.githubusercontent.com` sends permissive CORS headers by default, so
@@ -58,11 +58,11 @@ Commit the fix and the next scheduled run will pick it up.
 
 ## 3. Running it yourself instead of GitHub Actions
 
-Any machine with internet access and a 30-minute cron entry works just as
+Any machine with internet access and a 15-minute cron entry works just as
 well — a home server, a Raspberry Pi, a free-tier VM, etc:
 
 ```cron
-*/30 * * * * cd /path/to/scraper && /usr/bin/python3 scrape.py
+*/15 * * * * cd /path/to/scraper && /usr/bin/python3 scrape.py
 ```
 
 Then serve `data/wait-times.json` however you like (a simple `python -m
@@ -76,12 +76,12 @@ http.server`, a static host, S3 with public read, etc.) and point
 | `scrape.py` | The scraper itself |
 | `requirements.txt` | Python deps (just Playwright) |
 | `data/wait-times.json` | Output — seeded with a snapshot so the dashboard has something to show before the first run |
-| `.github/workflows/scrape.yml` | Cron schedule (every 30 min) + commit-back step |
+| `.github/workflows/scrape.yml` | Cron schedule (every 15 min) + commit-back step |
 
 ## 5. A caveat worth knowing
 
 GitHub Actions' free-tier scheduled workflows are **not guaranteed to run
-exactly every 30 minutes** — GitHub explicitly reserves the right to delay
+exactly every 15 minutes** — GitHub explicitly reserves the right to delay
 scheduled runs during high load, sometimes by several minutes to over an
 hour. For a personal dashboard this is a non-issue; for anything
 safety-critical, self-hosting the cron job (option 3 above) gives you a

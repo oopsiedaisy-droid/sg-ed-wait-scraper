@@ -13,7 +13,7 @@ Run manually:
 
 Run on a schedule via the included GitHub Actions workflow
 (.github/workflows/scrape.yml), which commits data/wait-times.json back to
-the repo every 30 minutes. Point the dashboard's DATA_URL at the raw file.
+the repo every 15 minutes. Point the dashboard's DATA_URL at the raw file.
 
 Why Playwright and not plain requests:
 NHG's hospital pages (TTSH / Woodlands / KTPH) and the SKH Plumber tile are
