@@ -1,12 +1,13 @@
 name: Scrape ED wait times
 
 on:
-  schedule:
-    # Every 15 minutes. GitHub does not guarantee exact timing — during
-    # busy periods on the free tier, runs can be delayed by several
-    # minutes. That's a platform limit, not a bug in this workflow.
-    - cron: "*/15 * * * *"
-  workflow_dispatch: {}   # lets you trigger a run manually from the Actions tab
+  # Scheduled runs are paused: GitHub's runner IPs get bot-verification
+  # challenges (Vercel Security Checkpoint / Cloudflare) from the NHG and
+  # SKH sites, so only NUHS ever came back "ok" from here. A local cron
+  # job on a residential IP now runs scrape.py every 15 minutes instead
+  # and gets all five sources. Kept as workflow_dispatch for manual/backup
+  # runs — re-add a `schedule:` block if you ever move off local cron.
+  workflow_dispatch: {}
 
 permissions:
   contents: write

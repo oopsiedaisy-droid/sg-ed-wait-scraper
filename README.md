@@ -18,7 +18,9 @@ this server-side.
    waiting for the schedule.
 3. After it runs (~1–2 minutes, mostly spent installing the headless
    browser), check that `data/wait-times.json` was updated with a recent
-   `generated_at` timestamp and each source shows `"status": "ok"`.
+   `generated_at` timestamp. Note: a run triggered from GitHub's own
+   servers will likely only show `"status": "ok"` for `nuhs` — see §2 and
+   §3 for why, and how this deployment actually gets full coverage.
 4. Copy your repo's raw file URL. It looks like:
    ```
    https://raw.githubusercontent.com/<your-username>/<your-repo>/main/data/wait-times.json
@@ -33,41 +35,50 @@ this server-side.
 the dashboard's browser-side `fetch()` to it will succeed where a direct
 fetch to a hospital's own domain would not.
 
-## 2. About the SKH parser
+## 2. Why GitHub Actions alone isn't enough here
 
-The SKH tracker lives on `plumber.gov.sg`, a JS-rendered single-page app
-that wasn't reachable for inspection while this script was written (it
-sits outside the domains this environment could browse). `parse_skh()` in
-`scrape.py` uses the same generic "`<n> patient`" / "`<n> min`" / "`<n>
-hour`" pattern-matching used for the other hospitals, which is a
-reasonable first guess but may not match the tile's actual field labels.
+`parse_skh()` was originally a best-effort guess (the tile lives on
+`plumber.gov.sg`, a JS SPA that wasn't reachable for inspection while this
+script was written) — that's now fixed; it correctly reads the grid's
+`<patients> <consult_min> <bed_hr>` row anchored on the "`<n> row(s)`"
+footer text.
 
-To fix it if the first run comes back `"status": "error"` for `skh`:
+The remaining issue isn't the parsing logic — it's *where the scrape runs
+from*. GitHub Actions' runners come from a shared datacenter IP range, and
+both `nhghealth.com.sg` (TTSH/Woodlands/KTPH) and `plumber.gov.sg` (SKH)
+serve a bot-verification challenge page (Vercel Security Checkpoint /
+Cloudflare) to that range instead of the real content. Only NUHS comes
+back `"status": "ok"` from a GitHub-hosted run. The same code run from an
+ordinary residential IP gets all five sources fine — verified by running
+`scrape.py --debug` locally.
 
-```bash
-pip install -r requirements.txt
-playwright install chromium
-python scrape.py --debug
-```
+If you ever see a source you don't expect fail, `python scrape.py --debug`
+prints the first 800 characters of scraped text for every source so you
+can see what the site actually returned (a real markup change vs. a bot
+challenge page look very different).
 
-The `--debug` flag prints the first 800 characters of scraped text for
-every source, including SKH, straight to your terminal. Read what it
-actually says, then adjust the regex in `parse_skh()` to match — most
-likely just the label wording needs a tweak, not the general approach.
-Commit the fix and the next scheduled run will pick it up.
+## 3. Current setup: local cron, not the GitHub Actions schedule
 
-## 3. Running it yourself instead of GitHub Actions
-
-Any machine with internet access and a 15-minute cron entry works just as
-well — a home server, a Raspberry Pi, a free-tier VM, etc:
+Because of the IP-blocking above, this deployment's `schedule:` trigger in
+`.github/workflows/scrape.yml` is **paused** (left as `workflow_dispatch`
+only, for manual/backup runs). A cron job on a local machine with a normal
+residential IP runs instead:
 
 ```cron
-*/15 * * * * cd /path/to/scraper && /usr/bin/python3 scrape.py
+*/15 * * * * cd /path/to/scraper && .venv/bin/python scrape.py && git add data/wait-times.json && git diff --staged --quiet || (git commit -m "Update ED wait times [skip ci]" && git push)
 ```
 
-Then serve `data/wait-times.json` however you like (a simple `python -m
-http.server`, a static host, S3 with public read, etc.) and point
-`DATA_URL` at that instead of a GitHub raw URL.
+This pushes straight to the same repo GitHub Actions would have, so
+`DATA_URL` doesn't need to change. Don't run both the local cron and the
+GitHub Actions schedule at once — they'd race to commit/push the same
+file.
+
+If you'd rather not rely on a machine staying awake (laptops sleep;
+cron/launchd don't fire while asleep), any always-on box works the same
+way — a home server, a Raspberry Pi, a free-tier VM, etc. You can also
+serve `data/wait-times.json` from somewhere other than a git push (a
+simple `python -m http.server`, a static host, S3 with public read) and
+point `DATA_URL` there instead.
 
 ## 4. Files
 
@@ -76,13 +87,12 @@ http.server`, a static host, S3 with public read, etc.) and point
 | `scrape.py` | The scraper itself |
 | `requirements.txt` | Python deps (just Playwright) |
 | `data/wait-times.json` | Output — seeded with a snapshot so the dashboard has something to show before the first run |
-| `.github/workflows/scrape.yml` | Cron schedule (every 15 min) + commit-back step |
+| `.github/workflows/scrape.yml` | Manual-dispatch workflow (scheduled runs paused — see §3) |
 
 ## 5. A caveat worth knowing
 
 GitHub Actions' free-tier scheduled workflows are **not guaranteed to run
 exactly every 15 minutes** — GitHub explicitly reserves the right to delay
 scheduled runs during high load, sometimes by several minutes to over an
-hour. For a personal dashboard this is a non-issue; for anything
-safety-critical, self-hosting the cron job (option 3 above) gives you a
-harder guarantee.
+hour. Moot while running via local cron (§3), but worth knowing if you
+ever switch back to the GitHub-hosted schedule.

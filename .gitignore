@@ -1,2 +1,4 @@
 locum-bot/
 .DS_Store
+.venv/
+scrape.log
