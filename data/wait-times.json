@@ -1,20 +1,20 @@
 {
-  "generated_at": "2026-07-31T18:22:50.063161+08:00",
+  "generated_at": "2026-07-31T18:52:11.031101+08:00",
   "sources": {
     "nuhs": {
       "status": "ok",
       "ah": {
-        "waiting": 4,
+        "waiting": 2,
         "doctor_hr": 1,
         "bed_hr": 2
       },
       "nuh": {
-        "waiting": 9,
+        "waiting": 5,
         "doctor_hr": 2,
         "bed_hr": 28
       },
       "ntfgh": {
-        "waiting": 15,
+        "waiting": 10,
         "doctor_hr": 1,
         "bed_hr": 17
       },
@@ -23,35 +23,36 @@
         "doctor_hr": 1,
         "bed_hr": 1
       },
-      "fetched_at": "2026-07-31T18:22:57.672611+08:00",
+      "fetched_at": "2026-07-31T18:52:21.712790+08:00",
       "source_url": "https://www.nuhs.edu.sg/patient-care/emergency-department-wait-times"
     },
     "ttsh": {
-      "status": "error",
-      "reason": "pattern not found",
-      "raw_excerpt": "Failed to verify your browser Code 10 Vercel Security Checkpoint | cle1::1785493377-CjmRcutVL7ROIKbZJJpJPZJsZWSOlTdb",
-      "fetched_at": "2026-07-31T18:23:02.515977+08:00",
+      "status": "ok",
+      "waiting": 14,
+      "doctor_min": 84,
+      "fetched_at": "2026-07-31T18:52:28.547019+08:00",
       "source_url": "https://www.nhghealth.com.sg/ttsh/patients-visitors/emergency-medicine"
     },
     "wh": {
-      "status": "error",
-      "reason": "pattern not found",
-      "raw_excerpt": "Failed to verify your browser Code 10 Vercel Security Checkpoint | cle1::1785493382-CjmRcutVL7ROIKbZJJpJPZJsZWSOlTdb",
-      "fetched_at": "2026-07-31T18:23:07.235176+08:00",
+      "status": "ok",
+      "waiting": 13,
+      "doctor_min": 175,
+      "fetched_at": "2026-07-31T18:52:34.144713+08:00",
       "source_url": "https://www.nhghealth.com.sg/wh/for-patients-visitors/your-emergency-visit"
     },
     "ktph": {
-      "status": "error",
-      "reason": "pattern not found",
-      "raw_excerpt": "Failed to verify your browser Code 10 Vercel Security Checkpoint | cle1::1785493387-CjmRcutVL7ROIKbZJJpJPZJsZWSOlTdb",
-      "fetched_at": "2026-07-31T18:23:11.951930+08:00",
+      "status": "ok",
+      "waiting": 6,
+      "doctor_min": 34,
+      "fetched_at": "2026-07-31T18:52:40.765614+08:00",
       "source_url": "https://www.nhghealth.com.sg/ktph"
     },
     "skh": {
-      "status": "error",
-      "reason": "pattern not found \u2014 inspect with --debug",
-      "raw_excerpt": "plumber.gov.sg Performing security verification This website uses a security service to protect against malicious bots. This page is displayed while the website verifies you are not a bot. Ray ID: a23be2e469f828fe Performance and Security by Cloudflare Privacy",
-      "fetched_at": "2026-07-31T18:23:18.631642+08:00",
+      "status": "ok",
+      "waiting": 36,
+      "doctor_min": 122,
+      "bed_hr": 18,
+      "fetched_at": "2026-07-31T18:52:46.520895+08:00",
       "source_url": "https://plumber.gov.sg/tiles/4005364f-073d-4e59-9b9c-c237c816e873/28dba0a5-c239-49e2-b1a7-db708c4981e4"
     }
   }
