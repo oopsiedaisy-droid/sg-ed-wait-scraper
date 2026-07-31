@@ -2,3 +2,4 @@ locum-bot/
 .DS_Store
 .venv/
 scrape.log
+__pycache__/

@@ -146,6 +146,11 @@
   .cluster-head .cluster-meta{
     font-size:12.5px; color:var(--ink-soft); font-family:'IBM Plex Mono',monospace;
   }
+  .cluster-origin{
+    font-size:12px; color:var(--ink-soft); font-family:'IBM Plex Mono',monospace;
+    margin:-8px 0 18px;
+  }
+  .cluster-origin strong{color:var(--ink); font-weight:600;}
 
   /* ---------- Board rows ---------- */
   .board{
@@ -308,7 +313,7 @@
 <main>
   <div class="notice" id="configNotice">
     <strong>Data source</strong>
-    <span id="configNoticeText">This dashboard reads from a small server-side scraper's output instead of fetching hospital pages directly from your browser — that's what makes the numbers reliable rather than best-effort. It ships pointed at a placeholder. Follow the 5-minute setup in <code>scraper/README.md</code>, then edit <code>DATA_URL</code> near the bottom of this file to point at your own <code>data/wait-times.json</code>. Until then this page shows the last manually-captured snapshot (28 Jul 2026), refreshed on the same 15-minute cycle but not actually live.</span>
+    <span id="configNoticeText">This dashboard reads from a small server-side scraper's output instead of fetching hospital pages directly from your browser — that's what makes the numbers reliable rather than best-effort. It ships pointed at a placeholder. Follow the 5-minute setup in <code>scraper/README.md</code>, then edit <code>DATA_URL</code> near the bottom of this file to point at your own <code>data/wait-times.json</code>. Until then this page shows the last manually-captured snapshot (28 Jul 2026), refreshed on the same 30-minute cycle but not actually live.</span>
   </div>
 
   <section class="cluster">
@@ -316,6 +321,7 @@
       <h2>NUHS Cluster</h2>
       <span class="cluster-meta">National University Health System · aggregated on one page</span>
     </div>
+    <p class="cluster-origin" id="nuhs-origin-updated"></p>
     <div class="board">
 
       <div class="row sev-amber" id="row-ah" data-source="nuhs">
@@ -375,6 +381,7 @@
       <h2>NHG Health Cluster</h2>
       <span class="cluster-meta">National Healthcare Group · each hospital publishes its own widget</span>
     </div>
+    <p class="cluster-origin" id="nhg-origin-updated"></p>
     <div class="board">
 
       <div class="row sev-amber" id="row-ttsh" data-source="ttsh">
@@ -423,6 +430,7 @@
       <h2>SingHealth Cluster</h2>
       <span class="cluster-meta">Sengkang publishes a live tracker · SGH &amp; CGH do not</span>
     </div>
+    <p class="cluster-origin" id="singhealth-origin-updated"></p>
     <div class="board">
 
       <div class="row sev-amber" id="row-skh" data-source="skh">
@@ -483,7 +491,25 @@
 
 <script>
 (function(){
-  const REFRESH_MS = 15 * 60 * 1000; // 15 minutes
+  // Data updates land at :01 and :31 past every hour (see scrape_and_push.sh
+  // / .github/workflows/scrape.yml), not on a fixed interval from page load.
+  // The countdown below is computed against those wall-clock marks so it
+  // stays accurate regardless of when the page happened to open.
+  function msUntilNextMark(){
+    const now = new Date();
+    const next = new Date(now);
+    next.setSeconds(0, 0);
+    const minute = now.getMinutes();
+    if(minute < 1){
+      next.setMinutes(1);
+    } else if(minute < 31){
+      next.setMinutes(31);
+    } else {
+      next.setHours(next.getHours() + 1);
+      next.setMinutes(1);
+    }
+    return next - now;
+  }
 
   // ---------------------------------------------------------------
   // Point this at your own scraper's output once it's set up.
@@ -535,6 +561,14 @@
     b.innerHTML = '<span class="pulse"></span>' + label;
   }
 
+  function setClusterOrigin(id, value){
+    const p = el(id);
+    if(!p) return;
+    p.innerHTML = value
+      ? 'Origin last updated: <strong>' + value + '</strong> (as stated on the source site)'
+      : '';
+  }
+
   function applyData(data, fromLiveSource){
     const s = data.sources || {};
 
@@ -547,6 +581,7 @@
       if(n.nuhc){ el('nuhc-waiting').textContent = n.nuhc.waiting; el('nuhc-doctor').textContent = n.nuhc.doctor_hr + ' hr'; el('nuhc-bed').textContent = n.nuhc.bed_hr + ' hr'; }
     }
     ['badge-ah','badge-nuh','badge-nuhc','badge-ntfgh'].forEach(b => setBadge(b, s.nuhs ? s.nuhs.status : 'cached'));
+    setClusterOrigin('nuhs-origin-updated', s.nuhs && s.nuhs.status === 'ok' ? s.nuhs.origin_updated : null);
 
     // NHG cluster
     if(s.ttsh && s.ttsh.status === 'ok'){ el('ttsh-waiting').textContent = s.ttsh.waiting; el('ttsh-doctor').textContent = s.ttsh.doctor_min + ' min'; }
@@ -558,6 +593,13 @@
     if(s.ktph && s.ktph.status === 'ok'){ el('ktph-waiting').textContent = s.ktph.waiting; el('ktph-doctor').textContent = s.ktph.doctor_min + ' min'; }
     setBadge('badge-ktph', s.ktph ? s.ktph.status : 'cached');
 
+    // NHG's three hospitals share one backend refresh clock (observed
+    // identical timestamps), so any one of them stands in for the cluster.
+    const nhgOrigin = [s.ttsh, s.wh, s.ktph]
+      .map(x => (x && x.status === 'ok') ? x.origin_updated : null)
+      .find(Boolean);
+    setClusterOrigin('nhg-origin-updated', nhgOrigin);
+
     // SKH
     if(s.skh && s.skh.status === 'ok'){
       el('skh-waiting').textContent = s.skh.waiting;
@@ -567,6 +609,7 @@
     } else {
       setBadge('badge-skh', s.skh ? s.skh.status : 'cached');
     }
+    setClusterOrigin('singhealth-origin-updated', s.skh && s.skh.status === 'ok' ? s.skh.origin_updated : null);
 
     el('lastRefreshTime').textContent = fmtTime(data.generated_at) + (fromLiveSource ? '' : ' (fallback snapshot)');
 
@@ -576,7 +619,7 @@
     if(fromLiveSource){
       notice.classList.add('notice-ok');
       notice.querySelector('strong').textContent = 'Data source: live';
-      noticeText.innerHTML = 'Numbers on this page come from your server-side scraper\'s <code>data/wait-times.json</code>, refreshed every 15 minutes by GitHub Actions and re-polled by this page on the same cycle. Cross-origin browser restrictions never come into play because the scraping happens server-side.';
+      noticeText.innerHTML = 'Numbers on this page come from your server-side scraper\'s <code>data/wait-times.json</code>, refreshed every 30 minutes (at :01 and :31 past the hour) and re-polled by this page on the same schedule. Cross-origin browser restrictions never come into play because the scraping happens server-side.';
     } else {
       notice.classList.remove('notice-ok');
       notice.querySelector('strong').textContent = 'Data source: not yet configured';
@@ -614,23 +657,23 @@
     resetCountdown();
   }
 
-  let countdownSecs = REFRESH_MS / 1000;
   let countdownTimer = null;
 
   function tickCountdown(){
-    countdownSecs--;
-    if(countdownSecs <= 0){
+    const ms = msUntilNextMark();
+    if(ms <= 1000){
       refreshAll();
       return;
     }
-    const m = Math.floor(countdownSecs / 60).toString().padStart(2,'0');
-    const s = Math.floor(countdownSecs % 60).toString().padStart(2,'0');
+    const totalSecs = Math.round(ms / 1000);
+    const m = Math.floor(totalSecs / 60).toString().padStart(2,'0');
+    const s = (totalSecs % 60).toString().padStart(2,'0');
     el('countdown').textContent = m + ':' + s;
   }
 
   function resetCountdown(){
-    countdownSecs = REFRESH_MS / 1000;
     if(countdownTimer) clearInterval(countdownTimer);
+    tickCountdown();
     countdownTimer = setInterval(tickCountdown, 1000);
   }
 

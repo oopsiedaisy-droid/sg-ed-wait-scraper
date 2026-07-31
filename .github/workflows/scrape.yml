@@ -1,12 +1,21 @@
 name: Scrape ED wait times
 
 on:
-  # Scheduled runs are paused: GitHub's runner IPs get bot-verification
-  # challenges (Vercel Security Checkpoint / Cloudflare) from the NHG and
-  # SKH sites, so only NUHS ever came back "ok" from here. A local cron
-  # job on a residential IP now runs scrape.py every 15 minutes instead
-  # and gets all five sources. Kept as workflow_dispatch for manual/backup
-  # runs — re-add a `schedule:` block if you ever move off local cron.
+  schedule:
+    # :01 and :31 past every hour — matched to the local cron job's
+    # schedule (see README §3 and scrape_and_push.sh) so both schedulers
+    # attempt a push around the same moment. GitHub does not guarantee
+    # exact timing on the free tier; runs can be delayed by several
+    # minutes during high load.
+    #
+    # This run alone only reliably gets NUHS — GitHub's runner IPs get a
+    # bot-verification challenge (Vercel Security Checkpoint / Cloudflare)
+    # from the NHG and SKH sites that a residential IP never sees. That's
+    # fine: scrape.py merges with the previous data/wait-times.json and
+    # only overwrites a source when today's scrape actually succeeded, so
+    # this run can't erase what the local cron job captured. It exists so
+    # NUHS keeps updating even when the local machine is off.
+    - cron: "1,31 * * * *"
   workflow_dispatch: {}
 
 permissions:
@@ -30,10 +39,18 @@ jobs:
       - name: Run scraper
         run: python scrape.py
 
-      - name: Commit updated data if changed
+      - name: Commit and push updated data if changed
         run: |
           git config user.name "ed-wait-scraper-bot"
           git config user.email "actions@users.noreply.github.com"
           git add data/wait-times.json
-          git diff --staged --quiet || git commit -m "Update ED wait times [skip ci]"
-          git push
+          git diff --staged --quiet && exit 0
+          git commit -m "Update ED wait times [skip ci]"
+          for i in 1 2 3; do
+            git push && exit 0
+            git fetch origin main
+            git rebase origin/main || { git rebase --abort; exit 1; }
+            sleep $((RANDOM % 10 + 1))
+          done
+          echo "push failed after retries" >&2
+          exit 1

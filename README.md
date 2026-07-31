@@ -28,8 +28,8 @@ this server-side.
 5. Open `sg-ed-wait-times.html` and paste that URL into the `DATA_URL`
    constant near the top of the `<script>` block at the bottom of the
    file. Reopen the dashboard — it will now pull live numbers from your
-   repo, refreshed automatically every 15 minutes by the workflow, and
-   re-polled by the page itself on the same cadence.
+   repo, refreshed automatically at :01 and :31 past every hour, and
+   re-polled by the page itself on the same schedule.
 
 `raw.githubusercontent.com` sends permissive CORS headers by default, so
 the dashboard's browser-side `fetch()` to it will succeed where a direct
@@ -57,42 +57,63 @@ prints the first 800 characters of scraped text for every source so you
 can see what the site actually returned (a real markup change vs. a bot
 challenge page look very different).
 
-## 3. Current setup: local cron, not the GitHub Actions schedule
+## 3. Current setup: both GitHub Actions *and* local cron, merged
 
-Because of the IP-blocking above, this deployment's `schedule:` trigger in
-`.github/workflows/scrape.yml` is **paused** (left as `workflow_dispatch`
-only, for manual/backup runs). A cron job on a local machine with a normal
-residential IP runs instead:
+Two schedulers write to the same `data/wait-times.json`, both on `1,31 * *
+* *` (:01 and :31 past every hour):
 
-```cron
-*/15 * * * * cd /path/to/scraper && .venv/bin/python scrape.py && git add data/wait-times.json && git diff --staged --quiet || (git commit -m "Update ED wait times [skip ci]" && git push)
-```
+- **GitHub Actions** (`.github/workflows/scrape.yml`) — always on, no
+  machine required, but only reliably gets `nuhs` (see §2).
+- **Local cron**, via `scrape_and_push.sh`, on this machine:
+  ```cron
+  1,31 * * * * /path/to/scraper/scrape_and_push.sh
+  ```
+  Gets all five sources (ordinary residential IP), but only while the
+  machine is on — cron/launchd don't fire while asleep or powered off.
 
-This pushes straight to the same repo GitHub Actions would have, so
-`DATA_URL` doesn't need to change. Don't run both the local cron and the
-GitHub Actions schedule at once — they'd race to commit/push the same
-file.
+Running both isn't a conflict: `scrape.py` loads the *previous*
+`data/wait-times.json` before writing, and only overwrites a source when
+today's scrape actually returned `"status": "ok"` — otherwise it keeps
+whatever the last successful scrape (from either scheduler) captured. So
+even with the laptop off, the GitHub Actions run keeps NUHS current; the
+other four sources simply hold their last-known-good value (dashboard
+badge shows "cached", not broken) until local cron next runs. Both
+scripts also retry through push races (`git fetch` + `rebase`, a few
+times with jitter) since two schedulers on the same minute will sometimes
+both have something to push.
 
-If you'd rather not rely on a machine staying awake (laptops sleep;
-cron/launchd don't fire while asleep), any always-on box works the same
-way — a home server, a Raspberry Pi, a free-tier VM, etc. You can also
-serve `data/wait-times.json` from somewhere other than a git push (a
-simple `python -m http.server`, a static host, S3 with public read) and
-point `DATA_URL` there instead.
+If you'd rather have full five-source coverage with no dependency on this
+machine at all, point the local-cron half at an always-on box instead — a
+home server, a Raspberry Pi, a free-tier VM, etc. — running the same
+`scrape_and_push.sh`.
 
 ## 4. Files
 
 | File | Purpose |
 |---|---|
-| `scrape.py` | The scraper itself |
-| `requirements.txt` | Python deps (just Playwright) |
+| `scrape.py` | The scraper itself; merges with the previous output (see §3) |
+| `scrape_and_push.sh` | Wrapper the local cron job calls: run scraper, commit + push if changed, retry through push races |
+| `.venv/` | Local-only virtualenv (gitignored) — the pinned `requirements.txt` version doesn't ship a wheel for this machine's Python, so this venv uses an unpinned Playwright install instead |
+| `requirements.txt` | Python deps for the GitHub Actions runner (pinned Playwright version) |
 | `data/wait-times.json` | Output — seeded with a snapshot so the dashboard has something to show before the first run |
-| `.github/workflows/scrape.yml` | Manual-dispatch workflow (scheduled runs paused — see §3) |
+| `.github/workflows/scrape.yml` | Scheduled + manual-dispatch workflow, same :01/:31 cadence as local cron |
 
-## 5. A caveat worth knowing
+## 5. Cluster-level "origin last updated"
+
+Each hospital page states its own refresh time (e.g. TTSH: "Last updated
+at 31/07/2026 18:30:04"). `scrape.py` captures that raw string per source
+as `origin_updated`. The dashboard shows it once per **cluster** rather
+than per hospital: NUHS's four hospitals share one page (one stamp
+already); NHG's three hospitals were observed sharing one backend refresh
+clock (identical timestamps across TTSH/Woodlands/KTPH), so the dashboard
+just uses whichever of the three parsed; SingHealth shows SKH's row
+timestamp. This is the hospital's own stated freshness, which can differ
+from `fetched_at` (when our scraper actually ran).
+
+## 6. A caveat worth knowing
 
 GitHub Actions' free-tier scheduled workflows are **not guaranteed to run
-exactly every 15 minutes** — GitHub explicitly reserves the right to delay
+exactly on time** — GitHub explicitly reserves the right to delay
 scheduled runs during high load, sometimes by several minutes to over an
-hour. Moot while running via local cron (§3), but worth knowing if you
-ever switch back to the GitHub-hosted schedule.
+hour. The local cron job isn't subject to that, which is part of why §3
+runs both.
