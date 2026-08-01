@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-01T08:15:13.605631+08:00",
+  "generated_at": "2026-08-01T09:46:07.375284+08:00",
   "sources": {
     "nuhs": {
       "status": "ok",
@@ -9,46 +9,46 @@
         "bed_hr": 1
       },
       "nuh": {
-        "waiting": 2,
+        "waiting": 3,
         "doctor_hr": 1,
-        "bed_hr": 22
+        "bed_hr": 23
       },
       "ntfgh": {
-        "waiting": 10,
-        "doctor_hr": 2,
-        "bed_hr": 6
+        "waiting": 7,
+        "doctor_hr": 1,
+        "bed_hr": 7
       },
       "nuhc": {
-        "waiting": 1,
+        "waiting": 2,
         "doctor_hr": 1,
         "bed_hr": 1
       },
-      "origin_updated": "01 Aug 2026, 08:00:17 AM",
-      "fetched_at": "2026-08-01T08:15:20.523862+08:00",
+      "origin_updated": "01 Aug 2026, 09:30:02 AM",
+      "fetched_at": "2026-08-01T09:46:16.855577+08:00",
       "source_url": "https://www.nuhs.edu.sg/patient-care/emergency-department-wait-times"
     },
     "ttsh": {
       "status": "ok",
-      "waiting": 14,
-      "doctor_min": 84,
-      "origin_updated": "31/07/2026 18:30:04",
-      "fetched_at": "2026-07-31T19:04:15.404346+08:00",
+      "waiting": 7,
+      "doctor_min": 7,
+      "origin_updated": "01/08/2026 09:30:02",
+      "fetched_at": "2026-08-01T09:46:23.780541+08:00",
       "source_url": "https://www.nhghealth.com.sg/ttsh/patients-visitors/emergency-medicine"
     },
     "wh": {
       "status": "ok",
-      "waiting": 13,
-      "doctor_min": 175,
-      "origin_updated": "31/07/2026 18:30:04",
-      "fetched_at": "2026-07-31T19:04:21.149358+08:00",
+      "waiting": 2,
+      "doctor_min": 26,
+      "origin_updated": "01/08/2026 09:30:02",
+      "fetched_at": "2026-08-01T09:46:29.250549+08:00",
       "source_url": "https://www.nhghealth.com.sg/wh/for-patients-visitors/your-emergency-visit"
     },
     "ktph": {
       "status": "ok",
       "waiting": 6,
-      "doctor_min": 34,
-      "origin_updated": "31/07/2026 18:30:04",
-      "fetched_at": "2026-07-31T19:04:27.779539+08:00",
+      "doctor_min": 40,
+      "origin_updated": "01/08/2026 09:30:02",
+      "fetched_at": "2026-08-01T09:46:35.664250+08:00",
       "source_url": "https://www.nhghealth.com.sg/ktph"
     },
     "skh": {
@@ -57,7 +57,7 @@
       "waiting": 36,
       "doctor_min": 122,
       "bed_hr": 18,
-      "fetched_at": "2026-07-31T19:04:33.101350+08:00",
+      "fetched_at": "2026-08-01T09:46:41.093773+08:00",
       "source_url": "https://plumber.gov.sg/tiles/4005364f-073d-4e59-9b9c-c237c816e873/28dba0a5-c239-49e2-b1a7-db708c4981e4"
     }
   }
