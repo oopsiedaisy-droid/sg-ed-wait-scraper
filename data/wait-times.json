@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-04T16:08:49.108518+08:00",
+  "generated_at": "2026-09-04T20:50:38.460968+08:00",
   "sources": {
     "nuhs": {
       "status": "ok",
@@ -9,22 +9,22 @@
         "bed_hr": 1
       },
       "nuh": {
-        "waiting": 9,
-        "doctor_hr": 3,
-        "bed_hr": 38
+        "waiting": 16,
+        "doctor_hr": 1,
+        "bed_hr": 31
       },
       "ntfgh": {
-        "waiting": 6,
+        "waiting": 16,
         "doctor_hr": 1,
-        "bed_hr": 24
+        "bed_hr": 6
       },
       "nuhc": {
-        "waiting": 1,
+        "waiting": 2,
         "doctor_hr": 1,
         "bed_hr": 1
       },
-      "origin_updated": "04 Sep 2026, 03:30:05 PM",
-      "fetched_at": "2026-09-04T16:08:56.091855+08:00",
+      "origin_updated": "04 Sep 2026, 08:32:00 PM",
+      "fetched_at": "2026-09-04T20:50:45.615422+08:00",
       "source_url": "https://www.nuhs.edu.sg/patient-care/emergency-department-wait-times"
     },
     "ttsh": {
