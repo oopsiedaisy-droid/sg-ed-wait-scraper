@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-28T18:43:49.693914+08:00",
+  "generated_at": "2026-10-29T00:59:59.386873+08:00",
   "sources": {
     "nuhs": {
       "status": "ok",
@@ -24,7 +24,7 @@
         "bed_hr": 2
       },
       "origin_updated": "25 Oct 2026, 03:02:09 AM",
-      "fetched_at": "2026-10-28T18:43:57.710051+08:00",
+      "fetched_at": "2026-10-29T01:00:08.988649+08:00",
       "source_url": "https://www.nuhs.edu.sg/patient-care/emergency-department-wait-times"
     },
     "ttsh": {
